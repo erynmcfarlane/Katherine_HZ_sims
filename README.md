@@ -1,2 +1,2 @@
-# Katherine_RHZ_sims
-Replicate hybrid zone simulations for Katherine Drotos' paper
+# Katherine_HZ_sims
+Hybrid zone simulations for Katherine Drotos' paper
