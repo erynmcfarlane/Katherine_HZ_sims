@@ -29,7 +29,7 @@ number_of_pops<-c(2,3)
 
 for(i in 1:length(migration_choices)){
   
-  for(j in 2){
+  for(j in 1:length(number_of_pops)){
     
 slim_script(
   slim_block (initialize(),
@@ -104,15 +104,22 @@ initializeGenomicElement(g1, 0, L-1);
   slim_block(4500, late(), ## change here for number of generations of hybridization doesn't seem to work with r_inline
              
              {
-               print(calcFST(p1.genomes, p2.genomes)); ### ERYN COME BACK TO HERE< it's the last place you need to put the pop loops in
-               g=c(p1.individuals, p2.individuals);
-               file_path = r_inline(paste0("test", migration_choices[i], ".vcf"))
+               Npop<-r_inline(number_of_pops[j])
+               if(Npop==2){
+               print(calcFST(p1.genomes, p2.genomes));
+               g=c(p1.individuals, p2.individuals);}
+               if(Npop==3){
+                 print(calcFST(p3.genomes, p4.genomes));
+                 print(calcFST(p3.genomes, p5.genomes));
+                 print(calcFST(p4.genomes, p5.genomes));
+                 g=c(p3.individuals, p4.individuals, p5.individuals);}
+               file_path = r_inline(paste0("test", "m", migration_choices[i], "pop", number_of_pops[j],".vcf")) ### also need to change here
                g.genomes.outputVCF(filePath=file_path, simplifyNucleotides=T);
                sim.simulationFinished();
                
   })) %>% slim_run(capture_output = TRUE, show_output = TRUE) ->script_2_run
 
-outputcommand<-paste("cp", script_2_run$output_file, paste0("./", "test", migration_choices[i], ".txt"))
+outputcommand<-paste("cp", script_2_run$output_file, paste0("./", "m", migration_choices[i],"pop", number_of_pops[j], ".txt"))
 system(outputcommand) ### this moves the random output file to the working directory
 
   }
