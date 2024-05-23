@@ -23,13 +23,16 @@ library(slimr)
 #if (!require(adegenet)) install.packages("adegenet")
 library(adegenet)
 
-migration_choices<-c(0.002, 0.001, 0.0002)
-number_of_pops<-c(2,3)
+migration_choices<-c(0.002, 0.02, 0.2) ### these are the three levels that I used in my Mol Ecol paper
+number_of_pops<-c(2,3) ### need to extend this and all of the loops out to k=5
+pop_size<-c(100, 1000, 10000)
 
 
 for(i in 1:length(migration_choices)){
   
   for(j in 1:length(number_of_pops)){
+    
+    for(k in 1:length(pop_size)){
     
 slim_script(
   slim_block (initialize(),
@@ -58,14 +61,15 @@ initializeGenomicElement(g1, 0, L-1);
              {
                ## create 2 populations of 500 
                Npop<-r_inline(number_of_pops[j])
+               popN<-r_inline(pop_size[k])
                if(Npop==2){
-               sim.addSubpop("p1", 500); ### add more populations here - This is probably going to be an ifelse statement from the loop
-               sim.addSubpop("p2", 500);}
+               sim.addSubpop("p1", popN); ### add more populations here - This is probably going to be an ifelse statement from the loop
+               sim.addSubpop("p2", popN);}
               if(Npop==3){  
                 print("3!")
-                sim.addSubpop("p3", 500); ### add more populations here - This is probably going to be an ifelse statement from the loop
-               sim.addSubpop("p4", 500);
-               sim.addSubpop("p5", 500)}### this works, just need to figure out what to do with it!
+                sim.addSubpop("p3", popN); ### add more populations here - This is probably going to be an ifelse statement from the loop
+               sim.addSubpop("p4", popN);
+               sim.addSubpop("p5", popN)}### this works, just need to figure out what to do with it!
               }),
   
   slim_block(2999, late(), ### change here for initial divergence
@@ -89,7 +93,7 @@ initializeGenomicElement(g1, 0, L-1);
                Npop<-r_inline(number_of_pops[j])
                
                if(Npop==2){
-               p1.setMigrationRates(p2, m); 
+               p1.setMigrationRates(p2, m); ### caveat here is that the migration between the populations is equal. It doesn't have to be, but it is
                p2.setMigrationRates(p1, m);}
                
                if(Npop==3){
@@ -101,7 +105,7 @@ initializeGenomicElement(g1, 0, L-1);
                p5.setMigrationRates(p3, m)}
              }),
 
-  slim_block(4500, late(), ## change here for number of generations of hybridization doesn't seem to work with r_inline
+  slim_block(3510, late(), ## 10 generations of hybridization - can change if needed, but likely won't vary this.
              
              {
                Npop<-r_inline(number_of_pops[j])
@@ -113,16 +117,17 @@ initializeGenomicElement(g1, 0, L-1);
                  print(calcFST(p3.genomes, p5.genomes));
                  print(calcFST(p4.genomes, p5.genomes));
                  g=c(p3.individuals, p4.individuals, p5.individuals);}
-               file_path = r_inline(paste0("test", "m", migration_choices[i], "pop", number_of_pops[j],".vcf")) ### also need to change here
+               file_path = r_inline(paste0("test", "m", migration_choices[i], "pop", number_of_pops[j],"N",pop_size[k], ".vcf")) ### also need to change here
                g.genomes.outputVCF(filePath=file_path, simplifyNucleotides=T);
                sim.simulationFinished();
                
   })) %>% slim_run(capture_output = TRUE, show_output = TRUE) ->script_2_run
 
-outputcommand<-paste("cp", script_2_run$output_file, paste0("./", "m", migration_choices[i],"pop", number_of_pops[j], ".txt"))
+outputcommand<-paste("cp", script_2_run$output_file, paste0("./", "m", migration_choices[i],"pop", number_of_pops[j],"N", pop_size[k], ".txt"))
 system(outputcommand) ### this moves the random output file to the working directory
 
   }
+}
 }
 
 #slim_function("test_name", 1)
