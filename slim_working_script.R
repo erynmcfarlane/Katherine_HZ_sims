@@ -3,6 +3,7 @@
 #### slim set up
 if (!require("devtools")) install.packages(devtools)
 devtools::install_github("rdinnager/slimr")  #downloads the latest version
+library(slimr)
 
 slim_setup() ### this will install slim if you don't have it already
 slim_is_avail() ### really makes sure slim is there.
@@ -22,6 +23,14 @@ library(slimr)
 #if (!require(adegenet)) install.packages("adegenet")
 library(adegenet)
 
+migration_choices<-c(0.002, 0.001, 0.0002)
+number_of_pops<-c(2,3)
+
+
+for(i in 1:length(migration_choices)){
+  
+  for(j in 2){
+    
 slim_script(
   slim_block (initialize(),
               {
@@ -48,34 +57,67 @@ initializeGenomicElement(g1, 0, L-1);
   slim_block(1,
              {
                ## create 2 populations of 500 
-               sim.addSubpop("p1", 500); ### add more populations here
-               sim.addSubpop("p2", 500);
-             }),
+               Npop<-r_inline(number_of_pops[j])
+               if(Npop==2){
+               sim.addSubpop("p1", 500); ### add more populations here - This is probably going to be an ifelse statement from the loop
+               sim.addSubpop("p2", 500);}
+              if(Npop==3){  
+                print("3!")
+                sim.addSubpop("p3", 500); ### add more populations here - This is probably going to be an ifelse statement from the loop
+               sim.addSubpop("p4", 500);
+               sim.addSubpop("p5", 500)}### this works, just need to figure out what to do with it!
+              }),
   
   slim_block(2999, late(), ### change here for initial divergence
              {
                #calculate Fst
+               Npop<-r_inline(number_of_pops[j])
+               if(Npop==2)
               print(calcFST(p1.genomes, p2.genomes));
+               if(Npop==3){
+                 print("yay 3!")
+                print(calcFST(p3.genomes, p4.genomes));
+               print(calcFST(p3.genomes, p5.genomes));
+               print(calcFST(p4.genomes, p5.genomes))}
              }),
   
   
   slim_block(3500, late(),
              
              {
-               p1.setMigrationRates(p2, 0.002); ### change here to change the rate of hybridization between populations
-               p2.setMigrationRates(p1, 0.002);
+               m = r_inline(migration_choices[i])
+               Npop<-r_inline(number_of_pops[j])
+               
+               if(Npop==2){
+               p1.setMigrationRates(p2, m); 
+               p2.setMigrationRates(p1, m);}
+               
+               if(Npop==3){
+                p3.setMigrationRates(p4, m); 
+               p3.setMigrationRates(p5, m); 
+               p4.setMigrationRates(p3, m); 
+               p4.setMigrationRates(p5, m); 
+               p5.setMigrationRates(p3, m); 
+               p5.setMigrationRates(p3, m)}
              }),
 
-  slim_block(3600, late(), ## change here for number of generations of hybridization
+  slim_block(4500, late(), ## change here for number of generations of hybridization doesn't seem to work with r_inline
              
              {
-               print(calcFST(p1.genomes, p2.genomes));
+               print(calcFST(p1.genomes, p2.genomes)); ### ERYN COME BACK TO HERE< it's the last place you need to put the pop loops in
                g=c(p1.individuals, p2.individuals);
-               g.genomes.outputVCF(filePath="working.vcf", simplifyNucleotides=T);
+               file_path = r_inline(paste0("test", migration_choices[i], ".vcf"))
+               g.genomes.outputVCF(filePath=file_path, simplifyNucleotides=T);
                sim.simulationFinished();
                
   })) %>% slim_run(capture_output = TRUE, show_output = TRUE) ->script_2_run
 
-system("pwd")
-system("cp /var/folders/s2/9217dxv55ds4_1szvkfz5qm40000gn/T//RtmpRS5K3z/file11e2825289576.txt ./slim_out.txt") ### this moves the random output file to the working directory
+outputcommand<-paste("cp", script_2_run$output_file, paste0("./", "test", migration_choices[i], ".txt"))
+system(outputcommand) ### this moves the random output file to the working directory
 
+  }
+}
+
+#slim_function("test_name", 1)
+
+              
