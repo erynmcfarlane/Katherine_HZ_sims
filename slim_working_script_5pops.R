@@ -210,7 +210,7 @@ initializeGenomicElement(g1, 0, L-1);
                  print(calcFST(p3.genomes, p5.genomes));
                  print(calcFST(p4.genomes, p5.genomes));
                  g=c(p1.individuals, p2.individuals, p3.individuals, p4.individuals, p5.individuals);}
-               file_path = r_inline(paste0("test", "m", migration_choices[i], "pop", number_of_pops[j],"N",pop_size[k], ".vcf")) ### also need to change here
+               file_path = r_inline(paste0("test", "m", migration_choices[i], "pop", number_of_pops[j],"N_markers", N_markers[k], ".vcf")) ### also need to change here
                g.genomes.outputVCF(filePath=file_path, simplifyNucleotides=T);
                sim.simulationFinished();
                
