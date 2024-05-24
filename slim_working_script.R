@@ -25,7 +25,7 @@ library(adegenet)
 
 migration_choices<-c(0.002, 0.02, 0.2) ### these are the three levels that I used in my Mol Ecol paper
 number_of_pops<-c(2,3) ### need to extend this and all of the loops out to k=5
-pop_size<-c(100, 1000, 10000)
+pop_size<-c(1000, 10000, 100000)
 
 
 for(i in 1:length(migration_choices)){
@@ -105,7 +105,7 @@ initializeGenomicElement(g1, 0, L-1);
                p5.setMigrationRates(p3, m)}
              }),
 
-  slim_block(3510, late(), ## 10 generations of hybridization - can change if needed, but likely won't vary this.
+  slim_block(3505, late(), ## 10 generations of hybridization - can change if needed, but likely won't vary this.
              
              {
                Npop<-r_inline(number_of_pops[j])
