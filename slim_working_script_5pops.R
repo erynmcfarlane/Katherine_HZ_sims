@@ -1,8 +1,8 @@
 
-
 #### slim set up
 if (!require("devtools")) install.packages(devtools)
 devtools::install_github("rdinnager/slimr")  #downloads the latest version
+
 library(slimr)
 
 slim_setup() ### this will install slim if you don't have it already
